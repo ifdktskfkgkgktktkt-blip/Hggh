@@ -1,0 +1,2479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<title>Кейсы</title>
+
+<style>
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/roboto@4.5.8/400.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/roboto@4.5.8/500.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/roboto@4.5.8/700.css');
+
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #f5f6f8;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1c2229;
+    overflow-x: hidden;
+}
+
+.page {
+    display: none;
+    padding-top: 15px;
+    padding-bottom: 120px;
+}
+.page.active {
+    display: block;
+}
+
+.page-placeholder {
+    text-align: center;
+    color: #9aa4af;
+    margin-top: 40vh;
+    font-size: 18px;
+}
+.page-placeholder i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    display: block;    color: #1c2229;
+}
+
+.notifications-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: 90%;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.notification-toast {
+    background: rgba(28, 34, 41, 0.95);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: slideDown 0.3s ease;
+    backdrop-filter: blur(10px);
+    pointer-events: auto;
+}
+
+.notification-toast.hiding {
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-20px); }
+}
+
+.profile-header {
+    margin: 12px 15px 15px;
+    padding: 15px;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.profile-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6bdc8b, #4da3ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+    font-weight: 700;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.nickname {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.balance {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+.balance:active { opacity: 0.7; }
+
+.balance .currency-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    padding: 20px 16px 10px;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+}
+
+.filters::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 20px;
+    background: white;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    pointer-events: auto;
+}
+
+.filter-chip.disabled { opacity: 0.4; pointer-events: none; }
+
+.filter-chip.active {
+    border-color: #4da3ff;
+    color: #1c2229;
+    background: white;
+}
+
+.filter-chip .chip-currency {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+.roulette-container {
+    position: relative;
+    margin-top: 10px;
+    padding: 0 0 10px;
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+.roulette {
+    overflow: hidden;
+    position: relative;
+    height: 200px;
+    mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+}
+
+.roulette-track {
+    display: flex;
+    gap: 12px;
+    padding: 0 16px;
+    transition: none;
+    will-change: transform;
+}
+
+.roulette-card {
+    flex-shrink: 0;
+    width: 130px;
+    height: 180px;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.roulette-card .card-image {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 12px;
+}
+
+.roulette-card .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;}
+
+.roulette-card .card-price {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.roulette-card .card-price .currency-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.center-line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 3px;
+    height: 100%;
+    background: #4da3ff;
+    transform: translateX(-50%);
+    z-index: 10;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(77,163,255,0.5);
+}
+
+.center-line::before, .center-line::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+}
+
+.center-line::before {
+    top: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid #4da3ff;
+}
+
+.center-line::after {    bottom: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 12px solid #4da3ff;
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    padding: 10px 16px 15px;
+    align-items: stretch;
+    pointer-events: auto;
+}
+
+.spin-btn {
+    flex: 1;
+    background: #1e88e5;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 16px 20px;
+    font-size: 19px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    box-shadow: 0 4px 15px rgba(30,136,229,0.35);
+    transition: transform 0.1s, background 0.2s, opacity 0.3s;
+    outline: none;
+    white-space: nowrap;
+    line-height: 1;
+    pointer-events: auto;
+}
+
+.spin-btn:active:not(.disabled) {
+    transform: scale(0.97);
+    background: #1976d2;
+}
+
+.spin-btn.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    background: #90b8d9;
+    box-shadow: none;
+}
+
+.spin-btn .btn-cost {
+    display: inline-flex;    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+}
+
+.spin-btn .btn-cost .currency-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.spin-btn .btn-free {
+    display: inline-block;
+    background: white;
+    color: #1e88e5;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 4px 14px;
+    border-radius: 14px;
+    margin-left: 6px;
+    line-height: 1;
+}
+
+.demo-box {
+    background: white;
+    border-radius: 20px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    min-width: 80px;
+    pointer-events: auto;
+    transition: opacity 0.3s;
+}
+
+.demo-box.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.demo-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #888;
+    letter-spacing: 0.5px;
+}
+.toggle-track {
+    width: 50px;
+    height: 28px;
+    background: #d0d5dd;
+    border-radius: 14px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.toggle-track.on { background: #1e88e5; }
+
+.toggle-thumb {
+    width: 22px;
+    height: 22px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-track.on .toggle-thumb { transform: translateX(22px); }
+
+.title {
+    text-align: center;
+    color: #999;
+    font-size: 16px;
+    margin: 20px 0 15px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 0 16px 30px;
+    pointer-events: auto;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 12px 8px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.icon img {    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    object-fit: contain;
+}
+
+.chance {
+    color: #bbb;
+    font-size: 12px;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.price {
+    background: rgba(77, 163, 255, 0.15);
+    color: #4da3ff;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.price .currency-icon {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
+
+.profile-page-card {
+    margin: 12px 15px;
+    padding: 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.profile-top-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.profile-avatar-large {
+    display: flex;    align-items: center;
+    gap: 15px;
+}
+
+.avatar-circle-large {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6bdc8b, #4da3ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 32px;
+    font-weight: 700;
+    position: relative;
+    border: 4px solid #e3f2fd;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.avatar-circle-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-name-balance {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.profile-display-name {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: 'Roboto', cursive, sans-serif;
+}
+
+.profile-balance-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.profile-balance-display img {
+    width: 28px;    height: 28px;
+}
+
+.settings-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f0f2f5;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.settings-btn:active { background: #e0e5ea; }
+.settings-btn i { font-size: 22px; color: #555; }
+
+.topup-btn-large {
+    width: 100%;
+    padding: 18px;
+    background: #007aff;
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.topup-btn-large:active { background: #0056b3; }
+
+.referral-card {
+    margin: 12px 15px;
+    padding: 25px 20px;
+    background: linear-gradient(135deg, #007aff, #00a8ff);
+    border-radius: 20px;
+    text-align: center;
+    color: white;
+}
+
+.referral-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.referral-subtitle {
+    font-size: 15px;
+    opacity: 0.9;
+    margin-bottom: 20px;
+}
+
+.referral-btn {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    border-radius: 30px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.referral-btn:active {
+    background: white;
+    color: #007aff;
+}
+
+.profile-tabs-container { margin: 15px; }
+
+.profile-tabs {
+    display: flex;
+    background: #eef1f5;
+    border-radius: 16px;
+    padding: 4px;
+}
+
+.profile-tab {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #6b7a8d;
+    border: none;
+    background: none;
+}
+
+.profile-tab.active {
+    background: #007aff;
+    color: white;    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.gifts-grid-area { padding: 20px 15px; min-height: 200px; }
+
+.gifts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+}
+
+.gift-card {
+    background: white;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 12px 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    aspect-ratio: 0.9;
+    min-width: 100px;
+}
+
+.gift-card:active { transform: scale(0.95); }
+
+.gift-card-img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    margin-bottom: 8px;
+}
+
+.gift-value-badge {
+    background: #e8f0fe;
+    color: #1976d2;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.gift-value-badge img {    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.gifts-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+}
+
+.gifts-empty-icon {
+    font-size: 72px;
+    margin-bottom: 20px;
+}
+
+.gifts-empty-text {
+    font-size: 20px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.friends-placeholder {
+    display: none;
+    margin: 15px;
+    padding: 40px 20px;
+    background: white;
+    border-radius: 20px;
+    text-align: center;
+    min-height: 300px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.friends-placeholder i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    color: #ccc;
+}
+
+.friends-placeholder p {
+    font-size: 18px;
+    color: #999;
+}
+
+.history-container {    display: none;
+    margin: 15px;
+    min-height: 200px;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border-radius: 18px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: transform 0.15s;
+}
+
+.history-item:active { transform: scale(0.98); }
+
+.history-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 20px;
+}
+
+.history-icon-wrap.spin-icon { background: rgba(255,152,0,0.12); color: #ff9800; }
+.history-icon-wrap.win-icon { background: rgba(76,175,80,0.12); color: #4caf50; }
+.history-icon-wrap.topup-icon { background: rgba(77,163,255,0.12); color: #4da3ff; }
+.history-icon-wrap.sell-icon { background: rgba(156,39,176,0.12); color: #9c27b0; }
+.history-icon-wrap.claim-icon { background: rgba(0,150,136,0.12); color: #009688; }
+.history-icon-wrap.save-icon { background: rgba(255,193,7,0.12); color: #f9a825; }
+.history-icon-wrap.send-icon { background: rgba(33,150,243,0.12); color: #2196f3; }
+
+.history-text-block { flex: 1; min-width: 0; }
+
+.history-main-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1c2229;
+    margin-bottom: 2px;    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-sub-text {
+    font-size: 12px;
+    color: #9aa4af;
+}
+
+.history-amount {
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.history-amount.positive { color: #4caf50; }
+.history-amount.negative { color: #f44336; }
+
+.history-amount img { width: 16px; height: 16px; object-fit: contain; }
+
+.history-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+}
+
+.history-empty-icon { font-size: 72px; margin-bottom: 20px; }
+.history-empty-text { font-size: 20px; color: #9ca3af; font-weight: 500; }
+
+.bottom-menu {
+    position: fixed;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 500px;
+    height: 70px;
+    background: rgba(25, 35, 45, 0.85);
+    backdrop-filter: blur(15px);
+    border-radius: 35px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;    box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    pointer-events: auto;
+}
+
+.menu-item {
+    flex: 1;
+    text-align: center;
+    color: #9aa4af;
+    font-size: 13px;
+    cursor: pointer;
+    position: relative;
+    transition: 0.3s;
+    outline: none;
+}
+
+.menu-item i {
+    display: block;
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+
+.menu-item.active { color: #4da6ff; }
+
+.menu-item.active::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 55px;
+    background: radial-gradient(circle at center, rgba(77, 166, 255, 0.35), transparent 70%);
+    border-radius: 30px;
+    z-index: -1;
+}
+
+.demo-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.demo-overlay.show { display: flex; }
+
+.demo-backdrop {    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+.demo-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    padding: 30px;
+    animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 340px;
+    width: 90%;
+}
+
+.demo-close-x {
+    position: fixed;
+    top: 40px;
+    right: 20px;
+    z-index: 210;
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 8px;
+    line-height: 1;
+}
+
+.demo-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    margin-top: 10px;
+}
+
+.demo-prize-img {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 30px;
+    animation: floatPrize 2s ease-in-out infinite;
+}
+
+.demo-prize-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,0.2));}
+
+.demo-desc {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 30px;
+    line-height: 1.4;
+}
+
+.demo-close-btn {
+    width: 100%;
+    padding: 16px;
+    background: #1e88e5;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.demo-close-btn:active { background: #1565c0; }
+
+.win-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.win-overlay.show { display: flex; }
+
+.win-backdrop {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+.win-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    padding: 20px;
+    width: 100%;
+    max-width: 360px;    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.win-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+.win-heart-container {
+    width: 160px;
+    height: 160px;
+    margin-bottom: 20px;
+    animation: floatPrize 2s ease-in-out infinite;
+}
+
+.win-heart-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(233, 30, 99, 0.4));
+}
+
+.win-price-badge {
+    background: rgba(77, 163, 255, 0.15);
+    color: #4da3ff;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 20px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 35px;
+}
+
+.win-price-badge img { width: 22px; height: 22px; }
+
+.win-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+}
+
+.win-btn {    border: none;
+    border-radius: 24px;
+    padding: 16px 10px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.1s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.win-btn:active { transform: scale(0.96); }
+
+.win-btn-gray { background: #f5f7fa; color: #333; }
+
+.win-btn-blue {
+    background: #007aff;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+}
+
+.win-btn-icon { width: 22px; height: 22px; object-fit: contain; }
+
+.gift-detail-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.gift-detail-overlay.show { display: flex; }
+
+.gift-detail-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    z-index: 1;
+}
+
+.gift-detail-sheet {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 500px;    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 12px 20px 40px;
+    animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+}
+
+.gift-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.gift-detail-close-btn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #aaa;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+.gift-detail-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1c2229;
+}
+
+.gift-detail-image-wrap {
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 20px;
+    animation: floatPrize 2s ease-in-out infinite;
+}
+
+.gift-detail-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.gift-detail-question {
+    font-size: 17px;    color: #888;
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+
+.gift-detail-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 10px;
+}
+
+.gift-action-btn {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 24px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.1s, background 0.2s;
+}
+
+.gift-action-btn:active { transform: scale(0.97); }
+
+.gift-action-btn.send-btn { background: #f0f2f5; color: #1c2229; }
+
+.gift-action-btn.sell-btn {
+    background: #007aff;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+}
+
+.gift-action-btn .sell-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.gift-action-btn .sell-price img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;    display: none;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 1;
+}
+
+.modal-sheet {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 12px 20px 40px;
+    animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-handle {
+    width: 40px;
+    height: 5px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    margin: 0 auto 16px;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #aaa;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+.modal-title {
+    text-align: center;    font-size: 22px;
+    font-weight: 700;
+    color: #1c2229;
+    margin-bottom: 20px;
+    padding-right: 30px;
+}
+
+.modal-tabs {
+    display: flex;
+    background: #f0f2f5;
+    border-radius: 14px;
+    padding: 4px;
+    margin-bottom: 20px;
+}
+
+.modal-tab {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #999;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: color 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.modal-tab.active {
+    color: #1c2229;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.tab-badge {
+    font-size: 9px;
+    font-weight: 800;
+    background: #4da3ff;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 6px;
+}
+
+.amount-label {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1c2229;    margin-bottom: 12px;
+}
+
+.amount-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-radius: 24px;
+    padding: 6px 8px 6px 20px;
+    margin-bottom: 12px;
+    border: 2.5px solid #e0e5ea;
+    height: 64px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.amount-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.input-stars-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.amount-input {
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1c2229;
+    width: 100px;
+    font-family: inherit;
+    -webkit-user-select: auto;
+    user-select: auto;
+}
+
+.amount-input::placeholder { color: #ccc; }
+
+.max-btn {
+    background: #1e88e5;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    height: 50px;    padding: 0 28px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.max-btn:active { background: #1565c0; }
+
+.receive-text {
+    font-size: 15px;
+    color: #aaa;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 10px;
+}
+
+.receive-text img { width: 20px; height: 20px; object-fit: contain; }
+
+.quick-amounts {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    margin-bottom: 28px;
+    padding-bottom: 4px;
+}
+
+.quick-amounts::-webkit-scrollbar { display: none; }
+
+.quick-chip {
+    flex-shrink: 0;
+    padding: 14px 18px;
+    border-radius: 18px;
+    background: #f0f2f5;
+    border: 2.5px solid transparent;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1c2229;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.quick-chip.active {
+    background: #e8f4fd;    border-color: #4da3ff;
+}
+
+.quick-chip:active { transform: scale(0.96); }
+
+.quick-chip img { width: 18px; height: 18px; object-fit: contain; }
+
+.topup-btn {
+    width: 100%;
+    padding: 18px;
+    background: #1e88e5;
+    color: white;
+    border: none;
+    border-radius: 22px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 15px rgba(30,136,229,0.3);
+}
+
+.topup-btn:active {
+    background: #1565c0;
+    transform: scale(0.98);
+}
+
+.terms-text {
+    text-align: center;
+    font-size: 13px;
+    color: #bbb;
+    margin-top: 16px;
+    line-height: 1.4;
+}
+
+.terms-text a {
+    color: #4da3ff;
+    text-decoration: none;
+}
+
+.sponsor-content {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.sponsor-content.active { display: block; }
+
+.sponsor-icon { font-size: 56px; margin-bottom: 20px; opacity: 0.6; }
+
+.sponsor-text {    font-size: 18px;
+    font-weight: 600;
+    color: #999;
+    line-height: 1.5;
+}
+
+.stars-content { display: block; }
+.stars-content.hidden { display: none; }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes popUp {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes floatPrize {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.confirm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.confirm-modal-overlay.show { display: flex; }
+
+.confirm-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 1;
+}
+
+.confirm-dialog {    position: relative;
+    z-index: 2;
+    background: white;
+    width: 85%;
+    max-width: 320px;
+    border-radius: 24px;
+    padding: 24px 20px 16px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.confirm-text {
+    font-size: 19px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 24px;
+    line-height: 1.4;
+}
+
+.confirm-text img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.confirm-buttons { display: flex; gap: 12px; }
+
+.confirm-btn {
+    flex: 1;
+    padding: 14px 0;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.1s;
+    font-family: inherit;
+}
+
+.confirm-btn:active { transform: scale(0.96); }
+.confirm-btn-cancel { background: #f0f2f5; color: #333; }
+
+.confirm-btn-confirm {
+    background: #007aff;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+}
+@keyframes confetti-fall {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+.confetti-container {
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: absolute;
+    top: -20px;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: confetti-fall linear forwards;
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="notifications-container" id="notifications-container"></div>
+
+<div id="page-cases" class="page active">
+    <div class="profile-header">
+        <div class="profile-left">
+            <div class="avatar" id="avatar">U</div>
+            <div class="profile-info">
+                <div class="nickname" id="nickname">User</div>
+            </div>
+        </div>
+        <div class="balance" onclick="openTopupModal()">
+            <span id="balance-value">0</span>
+            <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎">
+        </div>
+    </div>
+
+    <div class="filters">
+        <div class="filter-chip active">
+            25 <img class="chip-currency" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎">
+        </div>
+    </div>
+
+    <div class="roulette-container">        <div class="roulette">
+            <div id="roulette-track" class="roulette-track"></div>
+            <div class="center-line"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="spin-btn disabled" id="spin-btn" onclick="spin()">
+            Мне повезёт, Go!<span class="btn-cost" id="spin-cost-area">25 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></span>
+        </button>
+        <div class="demo-box" id="demo-box">
+            <span class="demo-label">DEMO</span>
+            <div class="toggle-track" id="demo-toggle" onclick="toggleDemo()">
+                <div class="toggle-thumb" id="demo-thumb"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="title">Вы можете выиграть...</div>
+    <div class="grid">
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5170521118301225164.webp"></div>
+            <div class="chance">0.45%</div>
+            <div class="price">250 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5168043875654172773.webp"></div>
+            <div class="chance">1.31%</div>
+            <div class="price">100 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5170521118301225164.webp"></div>
+            <div class="chance">1.31%</div>
+            <div class="price">100 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5170690322832818290.webp"></div>
+            <div class="chance">1.31%</div>
+            <div class="price">100 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5170144170496491616.webp"></div>
+            <div class="chance">1.44%</div>
+            <div class="price">50 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5170314324215857265.webp"></div>
+            <div class="chance">1.44%</div>
+            <div class="price">50 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5170564780938756245.webp"></div>
+            <div class="chance">1.44%</div>
+            <div class="price">50 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/6028601630662853006.webp"></div>
+            <div class="chance">1.44%</div>
+            <div class="price">50 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5168103777563050263.webp"></div>
+            <div class="chance">34.90%</div>
+            <div class="price">25 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5170250947678437525.webp"></div>
+            <div class="chance">34.90%</div>
+            <div class="price">25 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5170145012310081615.webp"></div>
+            <div class="chance">10.04%</div>
+            <div class="price">15 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+        <div class="card">
+            <div class="icon"><img src="https://giftgogame.com/static/thumbnails/5170233102089322756.webp"></div>
+            <div class="chance">10.04%</div>
+            <div class="price">15 <img class="currency-icon" src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></div>
+        </div>
+    </div>
+</div>
+
+<div id="page-crash" class="page">
+    <div class="page-placeholder"><i class="fas fa-rocket"></i>Раздел Краш</div>
+</div>
+
+<div id="page-season" class="page">
+    <div class="page-placeholder"><i class="fas fa-trophy"></i>Раздел Сезон</div>
+</div>
+
+<div id="page-profile" class="page">
+    <div class="profile-page-card">
+        <div class="profile-top-section">
+            <div class="profile-avatar-large">
+                <div class="avatar-circle-large">
+                    <span id="profile-avatar">U</span>
+                </div>
+                <div class="profile-name-balance">
+                    <div class="profile-display-name" id="profile-name">User</div>                    <div class="profile-balance-display">
+                        <span id="profile-balance">0</span>
+                        <img src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎">
+                    </div>
+                </div>
+            </div>
+            <button class="settings-btn" onclick="refreshAvatarManual()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+        <button class="topup-btn-large" onclick="openTopupModal()">Пополнить баланс</button>
+    </div>
+
+    <div class="referral-card">
+        <div class="referral-title">Приглашай друзей</div>
+        <div class="referral-subtitle">и зарабатывай 10% от их депозитов</div>
+        <button class="referral-btn" onclick="inviteFriends()">Пригласить друзей</button>
+    </div>
+
+    <div class="profile-tabs-container">
+        <div class="profile-tabs">
+            <div class="profile-tab active" onclick="switchProfileTab('gifts', this)">Подарки</div>
+            <div class="profile-tab" onclick="switchProfileTab('friends', this)">Друзья</div>
+            <div class="profile-tab" onclick="switchProfileTab('history', this)">История</div>
+        </div>
+    </div>
+
+    <div class="gifts-grid-area" id="gifts-container">
+        <div class="gifts-empty-state">
+            <div class="gifts-empty-icon">🔍</div>
+            <div class="gifts-empty-text">У вас ещё нет подарков</div>
+        </div>
+    </div>
+
+    <div class="friends-placeholder" id="friends-container">
+        <i class="fas fa-user-friends"></i>
+        <p>У вас ещё нет друзей</p>
+    </div>
+
+    <div class="history-container" id="history-container">
+        <div class="history-empty-state" id="history-empty">
+            <div class="history-empty-icon">📋</div>
+            <div class="history-empty-text">История пуста</div>
+        </div>
+        <div class="history-list" id="history-list" style="display:none;"></div>
+    </div>
+</div>
+
+<div class="bottom-menu">
+    <div class="menu-item" onclick="handleCrashClick(this)">        <i class="fas fa-rocket"></i>Краш
+    </div>
+    <div class="menu-item active" onclick="switchPage('cases', this)">
+        <i class="fas fa-gift"></i>Кейсы
+    </div>
+    <div class="menu-item" onclick="switchPage('season', this)">
+        <i class="fas fa-trophy"></i>Сезон
+    </div>
+    <div class="menu-item" onclick="switchPage('profile', this)">
+        <i class="fas fa-user"></i>Профиль
+    </div>
+</div>
+
+<div class="demo-overlay" id="demo-overlay">
+    <button class="demo-close-x" onclick="closeDemoOverlay()">✕</button>
+    <div class="demo-backdrop" onclick="closeDemoOverlay()"></div>
+    <div class="demo-content">
+        <div class="demo-title">Демо-подарок</div>
+        <div class="demo-prize-img" id="demo-prize-img"></div>
+        <div class="demo-desc">Демо-режим для тестирования шансов.</div>
+        <button class="demo-close-btn" onclick="disableDemo()">Отключить демо-режим</button>
+    </div>
+</div>
+
+<div class="win-overlay" id="win-overlay">
+    <div class="win-backdrop" onclick="closeWinOverlay()"></div>
+    <div class="win-content">
+        <div class="win-title">Вы выиграли:</div>
+        <div class="win-heart-container">
+            <img class="win-heart-img" id="win-prize-img" src="" alt="prize">
+        </div>
+        <div class="win-price-badge" id="win-price-display">
+            0 <img src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎">
+        </div>
+        <div class="win-buttons-grid">
+            <button class="win-btn win-btn-gray" onclick="claimPrize()">
+                <img class="win-btn-icon" src="https://img.icons8.com/ios-filled/50/000000/gift.png">
+                Получить
+            </button>
+            <button class="win-btn win-btn-gray" onclick="savePrize()">
+                <img class="win-btn-icon" src="https://img.icons8.com/ios-filled/50/000000/save.png">
+                Сохранить
+            </button>
+            <button class="win-btn win-btn-gray" onclick="sharePrize()">
+                <img class="win-btn-icon" src="https://img.icons8.com/ios-filled/50/000000/share.png">
+                Поделиться
+            </button>
+            <button class="win-btn win-btn-blue" onclick="sellPrize()">
+                <img class="win-btn-icon" src="https://img.icons8.com/ios-filled/50/ffffff/money-bag.png">
+                Продать            </button>
+        </div>
+    </div>
+</div>
+
+<div class="gift-detail-overlay" id="gift-detail-overlay">
+    <div class="gift-detail-backdrop" onclick="closeGiftDetail()"></div>
+    <div class="gift-detail-sheet">
+        <div class="modal-handle"></div>
+        <div class="gift-detail-header">
+            <div class="gift-detail-title">Ваш подарок</div>
+            <button class="gift-detail-close-btn" onclick="closeGiftDetail()">✕</button>
+        </div>
+        <div class="gift-detail-image-wrap">
+            <img id="gift-detail-image" src="" alt="gift">
+        </div>
+        <div class="gift-detail-question">Что вы хотите с ним сделать?</div>
+        <div class="gift-detail-actions">
+            <button class="gift-action-btn send-btn" onclick="sendGift()">Отправить</button>
+            <button class="gift-action-btn sell-btn" id="gift-detail-sell-btn" onclick="initiateSellFromDetail()">
+                Продать за <span class="sell-price"><span id="gift-detail-sell-value">0</span> <img src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="topup-modal">
+    <div class="modal-backdrop" onclick="closeTopupModal()"></div>
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <button class="modal-close-btn" onclick="closeTopupModal()">✕</button>
+        <div class="modal-title">Пополнение баланса</div>
+        <div class="modal-tabs">
+            <div class="modal-tab active" onclick="switchModalTab('stars', this)">Stars</div>
+            <div class="modal-tab" onclick="switchModalTab('sponsor', this)">Купить Stars <span class="tab-badge">NEW</span></div>
+        </div>
+        <div class="stars-content" id="stars-content">
+            <div class="amount-label">Введите сумму в звёздах:</div>
+            <div class="amount-row">
+                <div class="amount-left">
+                    <img class="input-stars-icon" src="https://giftgogame.com/static/images/icons/stars_icon.webp" alt="⭐">
+                    <input type="number" class="amount-input" id="amount-input" placeholder="0" value="25" inputmode="numeric">
+                </div>
+                <button class="max-btn" onclick="setMaxAmount()">Макс</button>
+            </div>
+            <div class="receive-text">
+                Вы получите <span id="receive-amount">25</span>
+                <img src="https://giftgogame.com/static/images/icons/crystal.svg" alt="💎">
+            </div>
+            <div class="quick-amounts" id="quick-amounts">                <div class="quick-chip active" onclick="selectQuickAmount(this, 25)">25 <img src="https://giftgogame.com/static/images/icons/stars_icon.webp" alt="⭐"></div>
+                <div class="quick-chip" onclick="selectQuickAmount(this, 50)">50 <img src="https://giftgogame.com/static/images/icons/stars_icon.webp" alt="⭐"></div>
+                <div class="quick-chip" onclick="selectQuickAmount(this, 100)">100 <img src="https://giftgogame.com/static/images/icons/stars_icon.webp" alt="⭐"></div>
+                <div class="quick-chip" onclick="selectQuickAmount(this, 250)">250 <img src="https://giftgogame.com/static/images/icons/stars_icon.webp" alt="⭐"></div>
+                <div class="quick-chip" onclick="selectQuickAmount(this, 500)">500 <img src="https://giftgogame.com/static/images/icons/stars_icon.webp" alt="⭐"></div>
+            </div>
+            <button class="topup-btn" onclick="topUpBalance()">Пополнить</button>
+            <div class="terms-text">
+                Пополняя баланс вы соглашаетесь с <a href="https://telegra.ph/Terms-of-Service-05-20-7" target="_blank">правилами</a>
+            </div>
+        </div>
+        <div class="sponsor-content" id="sponsor-content">
+            <div class="sponsor-icon">🤝</div>
+            <div class="sponsor-text">Здесь может быть<br>ваш спонсор</div>
+        </div>
+    </div>
+</div>
+
+<div class="confirm-modal-overlay" id="confirm-sell-modal">
+    <div class="confirm-backdrop" onclick="closeConfirmModal()"></div>
+    <div class="confirm-dialog">
+        <div class="confirm-text" id="confirm-sell-text"></div>
+        <div class="confirm-buttons">
+            <button class="confirm-btn confirm-btn-cancel" onclick="closeConfirmModal()">Отмена</button>
+            <button class="confirm-btn confirm-btn-confirm" onclick="confirmSellAction()">Да, продать</button>
+        </div>
+    </div>
+</div>
+
+<div class="confirm-modal-overlay" id="self-gift-confirm-modal">
+    <div class="confirm-backdrop" onclick="closeSelfGiftConfirm()"></div>
+    <div class="confirm-dialog">
+        <div style="font-size: 32px; margin-bottom: 16px;">💝</div>
+        <div class="confirm-text" id="self-gift-confirm-text">
+            Вы уверены, что хотите отправить этот подарок себе?
+        </div>
+        <div class="confirm-buttons">
+            <button class="confirm-btn confirm-btn-cancel" onclick="closeSelfGiftConfirm()">Отмена</button>
+            <button class="confirm-btn confirm-btn-confirm" onclick="confirmSelfGiftAction()">Да, отправить</button>
+        </div>
+    </div>
+</div>
+
+<div class="confetti-container" id="confetti-container"></div>
+
+<script>
+const CRYSTAL_ICON = 'https://giftgogame.com/static/images/icons/crystal.svg';
+const CRYSTAL_ICONS = `<img src="${CRYSTAL_ICON}" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;" alt="💎">`;
+
+const prizePool = [    { img: 'https://giftgogame.com/static/thumbnails/5168103777563050263.webp', value: 25, weight: 34.90 },
+    { img: 'https://giftgogame.com/static/thumbnails/5170521118301225164.webp', value: 250, weight: 0.45 },
+    { img: 'https://giftgogame.com/static/thumbnails/5168043875654172773.webp', value: 100, weight: 1.31 },
+    { img: 'https://giftgogame.com/static/thumbnails/5170250947678437525.webp', value: 25, weight: 34.90 },
+    { img: 'https://giftgogame.com/static/thumbnails/5170690322832818290.webp', value: 100, weight: 1.31 },
+    { img: 'https://giftgogame.com/static/thumbnails/5170564780938756245.webp', value: 50, weight: 1.44 },
+    { img: 'https://giftgogame.com/static/thumbnails/5170144170496491616.webp', value: 50, weight: 1.44 },
+    { img: 'https://giftgogame.com/static/thumbnails/5170314324215857265.webp', value: 50, weight: 1.44 },
+    { img: 'https://giftgogame.com/static/thumbnails/6028601630662853006.webp', value: 50, weight: 1.44 },
+    { img: 'https://giftgogame.com/static/thumbnails/5170145012310081615.webp', value: 15, weight: 10.04 },
+    { img: 'https://giftgogame.com/static/thumbnails/5170233102089322756.webp', value: 15, weight: 10.04 },
+];
+
+const CARD_W = 130;
+const CARD_GAP = 12;
+const CARD_TOTAL = CARD_W + CARD_GAP;
+const STRIP_LENGTH = 200;
+const SPIN_DURATION = 6500;
+const totalWeight = prizePool.reduce((sum, p) => sum + p.weight, 0);
+
+function getWeightedPrize() {
+    let rand = Math.random() * totalWeight;
+    for (const prize of prizePool) {
+        rand -= prize.weight;
+        if (rand <= 0) return prize;
+    }
+    return prizePool[prizePool.length - 1];
+}
+
+let trackEl, trackPrizes = [], currentOffset = 0, isSpinning = false;
+let autoInterval, autoPos = 0, autoDir = 1, autoSpeed = 0.6;
+let isDemo = false, currentCost = 25, userBalance = 0;
+let currentWonPrize = null, savedGifts = [], actionHistory = [], selectedGiftIndex = -1;
+let isSellFromWin = false;
+let pendingAction = null;
+let notificationQueue = [];
+let isShowingNotification = false;
+let rouletteVibrationInterval = null;
+
+const tg = window.Telegram.WebApp;
+
+function triggerHaptic(style) {
+    if (tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred(style || 'light');
+    }
+}
+
+function triggerButtonHaptic() {
+    triggerHaptic('light');
+}
+function startRouletteVibration() {
+    stopRouletteVibration();
+    function vibratePattern() {
+        triggerHaptic('medium');
+        setTimeout(() => {
+            triggerHaptic('heavy');
+        }, 150);
+    }
+    vibratePattern();
+    rouletteVibrationInterval = setInterval(vibratePattern, 250);
+}
+
+function stopRouletteVibration() {
+    if (rouletteVibrationInterval) {
+        clearInterval(rouletteVibrationInterval);
+        rouletteVibrationInterval = null;
+    }
+}
+
+function showNotification(message, duration = 2000) {
+    const container = document.getElementById('notifications-container');
+    if (notificationQueue.length >= 3) return;
+    const toast = document.createElement('div');
+    toast.className = 'notification-toast';
+    toast.textContent = message;
+    notificationQueue.push(toast);
+    container.appendChild(toast);
+    setTimeout(() => { hideNotification(toast); }, duration);
+}
+
+function hideNotification(toast) {
+    toast.classList.add('hiding');
+    setTimeout(() => {
+        toast.remove();
+        notificationQueue = notificationQueue.filter(n => n !== toast);
+    }, 300);
+}
+
+function handleCrashClick(el) {
+    triggerButtonHaptic();
+    showNotification('🚀 Краш в разработке');
+}
+
+function showConfetti() {
+    const container = document.getElementById('confetti-container');
+    container.innerHTML = '';
+    const colors = ['#f44336','#e91e63','#9c27b0','#673ab7','#3f51b5','#2196f3','#03a9f4','#00bcd4','#009688','#4caf50','#8bc34a','#ffeb3b','#ffc107','#ff9800','#ff5722'];
+    for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div');        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.width = (Math.random() * 8 + 5) + 'px';
+        piece.style.height = (Math.random() * 8 + 5) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        piece.style.animationDelay = (Math.random() * 1.5) + 's';
+        container.appendChild(piece);
+    }
+    setTimeout(() => { container.innerHTML = ''; }, 5000);
+}
+
+// === ФУНКЦИИ ДЛЯ АВАТАРА ===
+
+function setAvatar(elementId, photoUrl, fallbackChar) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    
+    el.innerHTML = '';
+    
+    if (photoUrl) {
+        const imgUrl = photoUrl.includes('?') ? `${photoUrl}&t=${Date.now()}` : `${photoUrl}?t=${Date.now()}`;
+        
+        const img = document.createElement('img');
+        img.src = imgUrl;
+        img.alt = fallbackChar;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
+        
+        img.onerror = () => {
+            el.innerHTML = fallbackChar;
+        };
+        
+        el.appendChild(img);
+    } else {
+        el.textContent = fallbackChar;
+    }
+}
+
+function updateAvatarFromTelegram() {
+    const user = tg.initDataUnsafe?.user;
+    if (!user) return;
+    
+    const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+    const fallbackChar = user.first_name?.[0]?.toUpperCase() || 'U';
+    
+    document.getElementById('nickname').textContent = name;    document.getElementById('profile-name').textContent = name;
+    
+    const photoUrl = user.photo_url;
+    setAvatar('avatar', photoUrl, fallbackChar);
+    setAvatar('profile-avatar', photoUrl, fallbackChar);
+}
+
+function refreshAvatarManual() {
+    triggerButtonHaptic();
+    updateAvatarFromTelegram();
+    showNotification('🔄 Данные обновлены');
+}
+
+// === КОНЕЦ ФУНКЦИЙ АВАТАРА ===
+
+document.addEventListener('DOMContentLoaded', () => {
+    trackEl = document.getElementById('roulette-track');
+    generateStrip();
+    centerInitialCard();
+    startAutoMove();
+    updateSpinButtonState();
+    tg.expand();
+    
+    updateAvatarFromTelegram();
+    
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            updateAvatarFromTelegram();
+        }
+    });
+    
+    document.querySelectorAll('button, .filter-chip, .demo-box, .balance, .menu-item, .quick-chip, .max-btn, .topup-btn, .topup-btn-large, .referral-btn, .gift-card, .gift-action-btn, .settings-btn, .profile-tab, .modal-tab, .demo-close-x, .demo-close-btn, .modal-close-btn, .gift-detail-close-btn, .confirm-btn, .confirm-backdrop, .modal-backdrop, .gift-detail-backdrop, .demo-backdrop, .win-backdrop, .win-btn, .toggle-track, .confirm-btn-confirm, .confirm-btn-cancel').forEach(el => {
+        el.addEventListener('click', triggerButtonHaptic);
+        el.addEventListener('touchstart', () => triggerHaptic('light'), { passive: true });
+    });
+});
+
+function updateBalanceDisplay() {
+    document.getElementById('balance-value').textContent = userBalance;
+    document.getElementById('profile-balance').textContent = userBalance;
+    updateSpinButtonState();
+}
+
+function updateSpinButtonState() {
+    const btn = document.getElementById('spin-btn');
+    if (isDemo) btn.classList.remove('disabled');
+    else btn.classList.toggle('disabled', userBalance < currentCost);
+}
+
+function addHistoryEntry(type, title, subtitle, amount, amountClass, iconClass) {    const now = new Date();
+    actionHistory.unshift({
+        type, title, subtitle, amount, amountClass, iconClass,
+        time: now.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}),
+        date: now.toLocaleDateString('ru-RU', {day:'numeric',month:'short'})
+    });
+    updateHistoryDisplay();
+}
+
+function updateHistoryDisplay() {
+    const emptyEl = document.getElementById('history-empty');
+    const listEl = document.getElementById('history-list');
+    if (actionHistory.length === 0) {
+        emptyEl.style.display = 'flex'; listEl.style.display = 'none'; return;
+    }
+    emptyEl.style.display = 'none'; listEl.style.display = 'flex';
+    listEl.innerHTML = actionHistory.map(e => `
+        <div class="history-item">
+            <div class="history-icon-wrap ${e.iconClass}">${getHistoryIcon(e.type)}</div>
+            <div class="history-text-block">
+                <div class="history-main-text">${e.title}</div>
+                <div class="history-sub-text">${e.subtitle} · ${e.date} ${e.time}</div>
+            </div>
+            ${e.amount ? `<div class="history-amount ${e.amountClass}">${e.amount}</div>` : ''}
+        </div>`).join('');
+}
+
+function getHistoryIcon(type) {
+    const icons = {spin:'<i class="fas fa-dice"></i>',win:'<i class="fas fa-gift"></i>',
+        topup:'<i class="fas fa-plus-circle"></i>',sell:'<i class="fas fa-coins"></i>',
+        claim:'<i class="fas fa-inbox"></i>',save:'<i class="fas fa-bookmark"></i>',
+        send:'<i class="fas fa-paper-plane"></i>'};
+    return icons[type] || '<i class="fas fa-circle"></i>';
+}
+
+function generateStrip() {
+    trackEl.innerHTML = '';
+    trackPrizes = [];
+    for (let i = 0; i < STRIP_LENGTH; i++) {
+        const prize = getWeightedPrize();
+        trackPrizes.push(prize);
+        trackEl.appendChild(createCard(prize));
+    }
+}
+
+function createCard(prize) {
+    const div = document.createElement('div');
+    div.className = 'roulette-card';
+    div.innerHTML = `<div class="card-image"><img src="${prize.img}" alt="prize"></div>
+        <div class="card-price">${prize.value} <img class="currency-icon" src="${CRYSTAL_ICON}" alt="💎"></div>`;    return div;
+}
+
+function getRouletteWidth() {
+    return document.querySelector('.roulette').offsetWidth;
+}
+
+function getOffsetForIndex(idx) {
+    const containerW = getRouletteWidth();
+    const containerCenter = containerW / 2;
+    return -(idx * CARD_TOTAL) + containerCenter - CARD_W / 2;
+}
+
+function centerInitialCard() {
+    const centerIdx = Math.floor(STRIP_LENGTH / 2);
+    currentOffset = getOffsetForIndex(centerIdx);
+    autoPos = currentOffset;
+    trackEl.style.transition = 'none';
+    trackEl.style.transform = `translateX(${currentOffset}px)`;
+}
+
+function startAutoMove() {
+    clearInterval(autoInterval);
+    const centerIdx = Math.floor(STRIP_LENGTH / 2);
+    const maxOffset = getOffsetForIndex(centerIdx - 5);
+    const minOffset = getOffsetForIndex(centerIdx + 5);
+    autoPos = currentOffset;
+    autoDir = 1;
+    autoInterval = setInterval(() => {
+        if (isSpinning) return;
+        autoPos += autoDir * autoSpeed;
+        if (autoPos > maxOffset) autoDir = -1;
+        if (autoPos < minOffset) autoDir = 1;
+        trackEl.style.transition = 'none';
+        trackEl.style.transform = `translateX(${autoPos}px)`;
+        currentOffset = autoPos;
+    }, 16);
+}
+
+function setLockUI(locked) {
+    document.getElementById('spin-btn').classList.toggle('disabled', locked && !isDemo);
+    document.getElementById('demo-box').classList.toggle('disabled', locked);
+    if (!locked) updateSpinButtonState();
+}
+
+function spin() {
+    if (isSpinning || (!isDemo && userBalance < currentCost)) return;
+    triggerHaptic('heavy');
+    if (!isDemo) {
+        userBalance -= currentCost;        updateBalanceDisplay();
+        addHistoryEntry('spin', 'Открытие кейса', `Стоимость: ${currentCost} ${CRYSTAL_ICONS}`, `-${currentCost}`, 'negative', 'spin-icon');
+    }
+    isSpinning = true;
+    clearInterval(autoInterval);
+    setLockUI(true);
+    const btn = document.getElementById('spin-btn');
+    btn.style.background = '#1565c0';
+
+    generateStrip();
+
+    const centerIdx = Math.floor(STRIP_LENGTH / 2);
+    const WIN_INDEX = centerIdx + 30;
+    const SCROLL_COUNT = 60;
+    const direction = Math.random() > 0.5 ? 1 : -1;
+    const startIdx = centerIdx - (direction * SCROLL_COUNT);
+    const startOffset = getOffsetForIndex(startIdx);
+    const targetOffset = getOffsetForIndex(WIN_INDEX);
+
+    trackEl.style.transition = 'none';
+    trackEl.style.transform = `translateX(${startOffset}px)`;
+    currentOffset = startOffset;
+
+    startRouletteVibration();
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            trackEl.style.transition = `transform ${SPIN_DURATION}ms cubic-bezier(0.12, 0.8, 0.2, 1)`;
+            trackEl.style.transform = `translateX(${targetOffset}px)`;
+
+            setTimeout(() => {
+                stopRouletteVibration();
+                isSpinning = false;
+                btn.style.background = '#1e88e5';
+                currentOffset = targetOffset;
+                autoPos = targetOffset;
+                setLockUI(false);
+                currentWonPrize = trackPrizes[WIN_INDEX];
+                triggerHaptic('heavy');
+                setTimeout(() => {
+                    triggerHaptic('heavy');
+                }, 100);
+                setTimeout(() => {
+                    showConfetti();
+                    if (isDemo) {
+                        showDemoOverlay(currentWonPrize);
+                    } else {
+                        showWinOverlay(currentWonPrize);
+                    }
+                }, 400);                startAutoMove();
+            }, SPIN_DURATION);
+        });
+    });
+}
+
+function toggleDemo() {
+    if (isSpinning) return;
+    isDemo = !isDemo;
+    document.getElementById('demo-toggle').classList.toggle('on', isDemo);
+    updateSpinButton();
+    updateSpinButtonState();
+}
+
+function updateSpinButton() {
+    document.getElementById('spin-cost-area').innerHTML = isDemo
+        ? '<span class="btn-free">FREE</span>'
+        : `${currentCost} <img class="currency-icon" src="${CRYSTAL_ICON}" alt="💎">`;
+}
+
+function showDemoOverlay(prize) {
+    document.getElementById('demo-prize-img').innerHTML = `<img src="${prize.img}" alt="prize">`;
+    document.getElementById('demo-overlay').classList.add('show');
+}
+function closeDemoOverlay() { document.getElementById('demo-overlay').classList.remove('show'); }
+function disableDemo() {
+    closeDemoOverlay();
+    isDemo = false;
+    document.getElementById('demo-toggle').classList.remove('on');
+    updateSpinButton();
+    updateSpinButtonState();
+}
+
+function showWinOverlay(prize) {
+    document.getElementById('win-prize-img').src = prize.img;
+    document.getElementById('win-price-display').innerHTML = `${prize.value} <img src="${CRYSTAL_ICON}" alt="💎">`;
+    document.getElementById('win-overlay').classList.add('show');
+}
+function closeWinOverlay() { document.getElementById('win-overlay').classList.remove('show'); }
+
+function claimPrize() {
+    pendingAction = 'claim';
+    document.getElementById('self-gift-confirm-text').textContent = 
+        'Вы уверены, что хотите получить этот подарок себе?';
+    document.getElementById('self-gift-confirm-modal').classList.add('show');
+}
+
+function sendGift() {
+    if (selectedGiftIndex < 0) return;
+    pendingAction = 'send';    document.getElementById('self-gift-confirm-text').textContent = 
+        'Вы уверены, что хотите отправить этот подарок себе?';
+    document.getElementById('self-gift-confirm-modal').classList.add('show');
+}
+
+function closeSelfGiftConfirm() {
+    document.getElementById('self-gift-confirm-modal').classList.remove('show');
+    pendingAction = null;
+}
+
+function confirmSelfGiftAction() {
+    closeSelfGiftConfirm();
+    
+    if (pendingAction === 'claim') {
+        closeWinOverlay();
+        tg.HapticFeedback?.notificationOccurred('success');
+        addHistoryEntry('claim', 'Получен приз', `Стоимость: ${currentWonPrize.value} ${CRYSTAL_ICONS}`, `+${currentWonPrize.value}`, 'positive', 'claim-icon');
+    } else if (pendingAction === 'send') {
+        const gift = savedGifts[selectedGiftIndex];
+        sendGiftToAdmin(gift);
+    }
+    
+    pendingAction = null;
+}
+
+// === НОВАЯ ФУНКЦИЯ: Отправка подарка админу ===
+function sendGiftToAdmin(gift) {
+    const user = tg.initDataUnsafe?.user;
+    const username = user?.username ? '@' + user.username : user?.first_name || 'Пользователь';
+    const userId = user?.id || 'Неизвестно';
+    
+    const now = new Date();
+    const timeStr = now.toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    
+    // Формируем сообщение для админа
+    const message = `🎁 *НОВЫЙ ПОДАРОК*\n\n` +
+                   `👤 *Юзернейм:* ${username}\n` +
+                   `🆔 *ID:* ${userId}\n` +
+                   `💎 *Стоимость:* ${gift.value} кристаллов\n` +
+                   `🕐 *Время:* ${timeStr}\n\n` +
+                   `🖼 *Подарок:* [Смотреть](${gift.img})`;
+    
+    // Отправляем данные боту через WebApp    const giftData = {
+        action: 'gift_send',
+        username: username,
+        userId: userId,
+        giftValue: gift.value,
+        giftImage: gift.img,
+        time: timeStr,
+        message: message
+    };
+    
+    // Отправляем данные боту
+    tg.sendData(JSON.stringify(giftData));
+    
+    // Показываем пользователю уведомление
+    showNotification('✅ Подарок отправлен!');
+    
+    // Добавляем в историю
+    tg.HapticFeedback?.notificationOccurred('success');
+    addHistoryEntry('send', 'Подарок отправлен', `Стоимость: ${gift.value} ${CRYSTAL_ICONS}`, null, null, 'send-icon');
+    
+    // Удаляем из профиля
+    closeGiftDetail();
+    savedGifts.splice(selectedGiftIndex, 1);
+    updateGiftsDisplay();
+}
+// === КОНЕЦ НОВОЙ ФУНКЦИИ ===
+
+function savePrize() {
+    if (currentWonPrize) {
+        savedGifts.push({...currentWonPrize});
+        updateGiftsDisplay();
+        closeWinOverlay();
+        tg.HapticFeedback?.notificationOccurred('success');
+        addHistoryEntry('save', 'Подарок сохранён', `Стоимость: ${currentWonPrize.value} ${CRYSTAL_ICONS}`, `+${currentWonPrize.value}`, 'positive', 'save-icon');
+    }
+}
+
+function updateGiftsDisplay() {
+    const container = document.getElementById('gifts-container');
+    if (savedGifts.length === 0) {
+        container.innerHTML = `<div class="gifts-empty-state"><div class="gifts-empty-icon">🔍</div><div class="gifts-empty-text">У вас ещё нет подарков</div></div>`;
+    } else {
+        container.innerHTML = `<div class="gifts-grid">${savedGifts.map((g, i) => `
+            <div class="gift-card" onclick="openGiftDetail(${i})">
+                <img class="gift-card-img" src="${g.img}" alt="gift">
+                <div class="gift-value-badge">${g.value} <img src="${CRYSTAL_ICON}" alt="💎"></div>
+            </div>`).join('')}</div>`;
+    }
+}
+function openGiftDetail(index) {
+    selectedGiftIndex = index;
+    const gift = savedGifts[index];
+    if (!gift) return;
+    document.getElementById('gift-detail-image').src = gift.img;
+    document.getElementById('gift-detail-sell-value').textContent = gift.value;
+    document.getElementById('gift-detail-overlay').classList.add('show');
+}
+function closeGiftDetail() { document.getElementById('gift-detail-overlay').classList.remove('show'); selectedGiftIndex = -1; }
+
+function initiateSellFromDetail() {
+    if (selectedGiftIndex < 0) return;
+    const gift = savedGifts[selectedGiftIndex];
+    document.getElementById('confirm-sell-text').innerHTML = `Продать подарок за ${gift.value} ${CRYSTAL_ICONS}?`;
+    isSellFromWin = false;
+    document.getElementById('confirm-sell-modal').classList.add('show');
+}
+
+function closeConfirmModal() { document.getElementById('confirm-sell-modal').classList.remove('show'); }
+
+function confirmSellAction() {
+    closeConfirmModal();
+    if (!isSellFromWin && selectedGiftIndex >= 0) {
+        const gift = savedGifts[selectedGiftIndex];
+        userBalance += gift.value;
+        updateBalanceDisplay();
+        addHistoryEntry('sell', 'Подарок продан', `Стоимость: ${gift.value} ${CRYSTAL_ICONS}`, `+${gift.value}`, 'positive', 'sell-icon');
+        savedGifts.splice(selectedGiftIndex, 1);
+        updateGiftsDisplay();
+        closeGiftDetail();
+    } else if (isSellFromWin && currentWonPrize) {
+        userBalance += currentWonPrize.value;
+        updateBalanceDisplay();
+        closeWinOverlay();
+        addHistoryEntry('sell', 'Приз продан', `Стоимость: ${currentWonPrize.value} ${CRYSTAL_ICONS}`, `+${currentWonPrize.value}`, 'positive', 'sell-icon');
+    }
+    tg.HapticFeedback?.notificationOccurred('success');
+}
+
+function sharePrize() {
+    if (tg && currentWonPrize) {
+        tg.openTelegramLink(`https://t.me/share/url?url=Я выиграл ${currentWonPrize.value} кристаллов!&text=Смотри, что я выбил!`);
+    }
+    closeWinOverlay();
+}
+
+function sellPrize() {
+    if (currentWonPrize) {
+        document.getElementById('confirm-sell-text').innerHTML = `Продать приз за ${currentWonPrize.value} ${CRYSTAL_ICONS}?`;
+        isSellFromWin = true;        document.getElementById('confirm-sell-modal').classList.add('show');
+    }
+}
+
+function switchPage(name, el) {
+    if (isSpinning) return;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    el.classList.add('active');
+}
+
+function switchProfileTab(tab, el) {
+    document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('gifts-container').style.display = tab === 'gifts' ? 'block' : 'none';
+    document.getElementById('friends-container').style.display = tab === 'friends' ? 'flex' : 'none';
+    document.getElementById('history-container').style.display = tab === 'history' ? 'block' : 'none';
+}
+
+function inviteFriends() {
+    if (tg) {
+        tg.openTelegramLink('https://t.me/share/url?url=Присоединяйся!&text=Приглашаю тебя!');
+    }
+}
+
+function openTopupModal() {
+    document.getElementById('topup-modal').classList.add('show');
+    switchModalTab('stars', document.querySelector('.modal-tab.active'));
+    document.getElementById('amount-input').value = 25;
+    updateReceiveAmount(25);
+    highlightQuickChip(25);
+}
+function closeTopupModal() { document.getElementById('topup-modal').classList.remove('show'); }
+
+function switchModalTab(tabName, tabEl) {
+    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+    document.getElementById('stars-content').style.display = tabName === 'stars' ? 'block' : 'none';
+    document.getElementById('sponsor-content').style.display = tabName === 'stars' ? 'none' : 'block';
+}
+
+function setMaxAmount() { document.getElementById('amount-input').value = 500; updateReceiveAmount(500); highlightQuickChip(500); }
+function selectQuickAmount(chip, amount) { document.getElementById('amount-input').value = amount; updateReceiveAmount(amount); highlightQuickAmount(amount); }
+function updateReceiveAmount(amount) { document.getElementById('receive-amount').textContent = amount; }
+function highlightQuickChip(amount) {
+    document.querySelectorAll('.quick-chip').forEach(c => {
+        c.classList.toggle('active', parseInt(c.textContent) === amount);
+    });
+}
+document.getElementById('amount-input')?.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value) || 0;
+    updateReceiveAmount(val);
+    highlightQuickChip(val);
+});
+
+function topUpBalance() {
+    const amount = parseInt(document.getElementById('amount-input').value) || 0;
+    if (amount <= 0) return;
+    userBalance += amount;
+    updateBalanceDisplay();
+    closeTopupModal();
+    tg.showPopup?.({title:'Баланс пополнен!', message:`+${amount} звёзд добавлено на ваш счёт.`, buttons:[{type:'ok'}]});
+    addHistoryEntry('topup', 'Пополнение баланса', `${amount} звёзд`, `+${amount}`, 'positive', 'topup-icon');
+}
+
+window.addEventListener('resize', () => {
+    if (!isSpinning) {
+        const centerIdx = Math.floor(STRIP_LENGTH / 2);
+        currentOffset = getOffsetForIndex(centerIdx);
+        autoPos = currentOffset;
+        trackEl.style.transition = 'none';
+        trackEl.style.transform = `translateX(${currentOffset}px)`;
+    }
+});
+</script>
+</body>
+</html>
